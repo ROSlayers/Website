@@ -4,10 +4,10 @@ pragma solidity ^0.8.0;
 import "../../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
 // import "../../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "../../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "../../node_modules/@openzeppelin/contracts/access/Ownable.sol";
+// import "../../node_modules/@openzeppelin/contracts/access/Ownable.sol";
 import "../../node_modules/@openzeppelin/contracts/utils/Counters.sol";
 
-contract SlayerBadge is ERC721URIStorage, Ownable {
+contract SlayerBadge is ERC721URIStorage {
 	using Counters for Counters.Counter;
 	uint256 private immutable _cap;
 
@@ -26,7 +26,7 @@ contract SlayerBadge is ERC721URIStorage, Ownable {
 			return "https://gateway.pinata.cloud/ipfs/QmRLrF5nMMsqkpgWWSgePKNVU2piWHSzjGVHBsRK95dio7";
 	}
 
-	function mint(address to, string memory tokenURI) public payable onlyOwner {
+	function mint(address to, string memory tokenURI) public payable {
 		require(totalSupply() <= cap(), "ERC721 Cap: cap reached");
 		require(msg.value >= 0.005 ether, "Not enough ETH sent: check price.");
 		_tokenIdCounter.increment();
@@ -56,7 +56,7 @@ contract SlayerBadge is ERC721URIStorage, Ownable {
 
 	receive() external payable {}
 
-	fallback() external payable {}
+	// fallback() external payable {}
 
 	function getBalance() public view returns (uint) {
 		return address(this).balance;

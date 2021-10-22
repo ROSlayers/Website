@@ -4,7 +4,7 @@ import Web3 from 'web3';
 
 const SlayerBadge = require('../abis/SlayerBadge.json');
 const abi = SlayerBadge.abi;
-const contractAddress = "0xeF743429a07C9ac3e5aBaeEF30EFd58fA55F9fe2"; //"0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd";
+// const accountAddress = "0xeF743429a07C9ac3e5aBaeEF30EFd58fA55F9fe2"; //"0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd";
 
 export const loadWeb3 = async () => {
   if (window.ethereum) {
@@ -97,21 +97,21 @@ export const getCurrentWalletConnected = async () => {
   }
 };
 
-async function loadBlockchainData() {
+export const loadBlockchainData = async () => {
   const web3 = window.web3;
   // Load account
   const accounts = await web3.eth.getAccounts();
-  const contractAddress = accounts[0];
+  const accountAddress = accounts[0];
 
   const networkId = await web3.eth.net.getId();
   const networkData = SlayerBadge.networks[networkId];
   if(networkData) {
     const abi = SlayerBadge.abi;
     // const contractAdddress = networkData.address;
-    const contract = new web3.eth.Contract(abi, contractAddress);
+    const contract = new web3.eth.Contract(abi, accountAddress);
     console.log(`Contract loaded successfully`);
     return {
-      address: contractAddress,
+      address: accountAddress,
       status: "👆🏽 Write a message in the text-field above.", 
     };
   } else {
@@ -121,16 +121,18 @@ async function loadBlockchainData() {
       status: "🦊 Connect to Metamask using the top right button.",
     };
   }
-}
+};
 
 const loadContract = async () => {
   const web3 = window.web3;
-  return new web3.eth.Contract(abi, contractAddress);
+  const accounts = await web3.eth.getAccounts();
+  const accountAddress = accounts[0];
+
+  return new web3.eth.Contract(abi, accountAddress);
 }
 
 export const transferFunds = async (amount, recepient) => {
-  const web3 = window.web3; 
-  const contract = await new web3.eth.Contract(abi, contractAddress);
+  const contract = await loadContract();
 
   let obj = {};
   // contract.
@@ -162,8 +164,9 @@ export const transferFunds = async (amount, recepient) => {
 
 export const mint = async () => {
   // try {
-  const web3 = await window.web3;
-  const contract = await new web3.eth.Contract(abi, contractAddress);
+  const contract = await loadContract();
+  // const web3 = await window.web3;
+  // const contract = await new web3.eth.Contract(abi, accountAddress);
   let obj = {};
   // try {
   // (async () => { 
