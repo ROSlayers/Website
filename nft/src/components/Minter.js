@@ -21,6 +21,7 @@ const Minter = (props) => {
 
   useEffect(async () => {
 		await loadWeb3();
+		// await
     const { address, status } = await getCurrentWalletConnected();
 
     setWallet(address);

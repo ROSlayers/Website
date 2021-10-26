@@ -4,7 +4,7 @@ import Web3 from 'web3';
 
 const SlayerBadge = require('../abis/SlayerBadge.json');
 const abi = SlayerBadge.abi;
-// const accountAddress = "0xeF743429a07C9ac3e5aBaeEF30EFd58fA55F9fe2"; //"0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd";
+const accountAddress = "0xeF743429a07C9ac3e5aBaeEF30EFd58fA55F9fe2"; //"0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd";
 
 export const loadWeb3 = async () => {
   if (window.ethereum) {
@@ -102,7 +102,7 @@ export const loadBlockchainData = async () => {
   // Load account
   const accounts = await web3.eth.getAccounts();
   const accountAddress = accounts[0];
-
+  console.log(` ${this} Contract address is ${accountAddress}` );
   const networkId = await web3.eth.net.getId();
   const networkData = SlayerBadge.networks[networkId];
   if(networkData) {
@@ -137,43 +137,116 @@ export const transferFunds = async (amount, recepient) => {
   let obj = {};
   // contract.
   const amountInWei = window.web3.utils.toWei(amount, "ether");
-  contract.methods.transferFunds(recepient).send({
+  window.web3.eth.sendTransaction({
     from: window.ethereum.selectedAddress,
-    // gasPrice: "20000000000",
-    value: window.web3.utils.toWei(amount, "ether")
+    to: recepient,
+    value: window.web3.utils.toWei(`${amount}`, 'ether'),
+    // data: contract.methods.transferFunds(recepient).encodeABI()
   })
   .then(function(receipt) {
-    obj = {
+    console.log(receipt);
+    return {
       success: true,
-      status: "✅ Successfully deposited.",
+      status: "✅ Successfully minted."
     };
-    console.log(`Status = ${obj.status}`);
-    return obj;
   })
   .then(function(error) {
-    obj = {
+    console.log(`Something went wrong. Details: ${error.message} `);
+    return {
       success: false,
       status: "😥 Something went wrong: " + error.message
-    };
-    console.log(`Transfer Status = ${obj.status}`);
-    return obj;
-    
-  });
-};
+    }
+  }); 
+};  
 
 
 export const mint = async () => {
-  // try {
+  
   const contract = await loadContract();
+
+  // console.log(`Contract address is ${contract}`);
   // const web3 = await window.web3;
   // const contract = await new web3.eth.Contract(abi, accountAddress);
-  let obj = {};
+  let response = {};
   // try {
   // (async () => { 
-  contract.methods.mint(window.ethereum.selectedAddress, "tokenURI").send({
+    /*
+  await window.web3.eth.sendTransaction({
+    from: window.ethereum.selectedAddress,
+    // to: contractAddress,
+    value: window.web3.utils.toWei("", "ether")
+  })
+  .then((receipt) => {
+    console.log("sucessful");
+  })
+  .catch((error) => {
+    console.log("Error ", error.message);
+  });*/
+  // const nonce = await web3.eth.getTransactionCount(PUBLIC_KEY, 'latest'); //get latest nonce
+
+  let contractAdr = contract.adddress;
+  console.log("Contract address is: ", contractAdr);
+
+
+  const tx = {
+    'from': window.ethereum.selectedAddress,
+    'to': '0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd',
+    // 'nonce': nonce,
+    'gasPrice': '20000000000',
+    'value': window.web3.utils.toWei('.05', 'ether'),
+    'data': contract.methods.mint("uri").encodeABI()
+  };
+
+  // using the callback
+  await window.web3.eth.sendTransaction({
+    from: window.ethereum.selectedAddress,
+    to: '0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd',
+    value: window.web3.utils.toWei('0.05', 'ether'),
+    data: contract.methods.mint("uri").encodeABI()
+  })
+  .then(function(receipt) {
+    console.log(receipt);
+    return {
+      success: true,
+      status: "✅ Successfully minted."
+    };
+  })
+  .then(function(error) {
+    console.log(`Something went wrong. Details: ${error.message} `);
+    return {
+      success: false,
+      status: "😥 Something went wrong: " + error.message
+    }
+  }); 
+  
+  /*
+  const signPromise = web3.eth.accounts.signTransaction(tx, "PRIVATE_KEY");
+  signPromise
+    .then((signedTx) => {
+      web3.eth.sendSignedTransaction(
+        signedTx.rawTransaction,
+        function (err, hash) {
+          if (!err) {
+            console.log(
+              `The hash of your transaction: ${hash} 
+              \nCheck bscscan to view status of your transaction.`
+            );
+          }else {
+            console.log(`Something went wrong when submitting your 
+            transaction ${err.message}`);
+          }
+        }
+      );
+    })
+    .catch((err) => {
+      error.log(`Promise failed ${err}`);
+    }); */
+  // }
+/*
+  contract.methods.mint("tokenURI").send({
     from: window.ethereum.selectedAddress, 
     // gasPrice: "20000000000", 
-    value:  window.web3.utils.toWei("0.005", "ether")
+    value:  window.web3.utils.toWei("0.01", "ether")
   })
   .on('receipt', (receipt) => {
     obj = {
@@ -202,5 +275,5 @@ export const mint = async () => {
   // }
 
   return obj; 
-  // }
+  */
 };

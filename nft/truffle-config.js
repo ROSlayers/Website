@@ -79,12 +79,12 @@ module.exports = {
 
     },
 
-    bsc_test: {
+    bsc_testnet: {
       
       networkCheckTimeout: 800000,
       provider: () => new HDWalletProvider(MNEMONIC, `https://data-seed-prebsc-1-s1.binance.org:8545`),
       network_id: 97,
-      // from: '0xb8796608Ebb55ecfDD23a145d79096d7AE4600d8',
+      // from: '0x77295879a1Cae13c3a1b7740588D742BeC5a736d',
       confirmations: 10,
       timeoutBlocks: 200,
       skipDryRun: true
