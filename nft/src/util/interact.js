@@ -1,10 +1,11 @@
 import React from "react";
 import Web3 from 'web3';
-// import SlayerBadge from '../abis/SlayerBadge.json';
+// import { NFTStorage } from "nft.storage";
 
+require('dotenv').config();
 const SlayerBadge = require('../abis/SlayerBadge.json');
 const abi = SlayerBadge.abi;
-const accountAddress = "0xeF743429a07C9ac3e5aBaeEF30EFd58fA55F9fe2"; //"0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd";
+const contractAddress = "0xc8f41c573d129c8327ba8adcd1f8ccb131242be0"; //"0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd";
 
 export const loadWeb3 = async () => {
   if (window.ethereum) {
@@ -101,17 +102,17 @@ export const loadBlockchainData = async () => {
   const web3 = window.web3;
   // Load account
   const accounts = await web3.eth.getAccounts();
-  const accountAddress = accounts[0];
-  console.log(` ${this} Contract address is ${accountAddress}` );
+  const account = accounts[0];
+  console.log(` ${this} Contract address is ${account}` );
   const networkId = await web3.eth.net.getId();
   const networkData = SlayerBadge.networks[networkId];
   if(networkData) {
     const abi = SlayerBadge.abi;
     // const contractAdddress = networkData.address;
-    const contract = new web3.eth.Contract(abi, accountAddress);
+    const contract = new web3.eth.Contract(abi, contractAddress);
     console.log(`Contract loaded successfully`);
     return {
-      address: accountAddress,
+      address: account,
       status: "👆🏽 Write a message in the text-field above.", 
     };
   } else {
@@ -125,15 +126,15 @@ export const loadBlockchainData = async () => {
 
 const loadContract = async () => {
   const web3 = window.web3;
-  const accounts = await web3.eth.getAccounts();
-  const accountAddress = accounts[0];
+  // const accounts = await web3.eth.getAccounts();
+  // const accountAddress = accounts[0];
 
-  return new web3.eth.Contract(abi, accountAddress);
+  return new web3.eth.Contract(abi, contractAddress);
 }
 
 export const transferFunds = async (amount, recepient) => {
   const contract = await loadContract();
-
+  
   let obj = {};
   // contract.
   const amountInWei = window.web3.utils.toWei(amount, "ether");
@@ -163,11 +164,13 @@ export const transferFunds = async (amount, recepient) => {
 export const mint = async () => {
   
   const contract = await loadContract();
-
+  const mintFee = await contract.methods.getMintFee().call();
+  console.log('Mint fee is', mintFee);
+  console.log(`Contract address: ${contract.options.address}`);
   // console.log(`Contract address is ${contract}`);
   // const web3 = await window.web3;
   // const contract = await new web3.eth.Contract(abi, accountAddress);
-  let response = {};
+  // let response = {};
   // try {
   // (async () => { 
     /*
@@ -196,29 +199,33 @@ export const mint = async () => {
     'value': window.web3.utils.toWei('.05', 'ether'),
     'data': contract.methods.mint("uri").encodeABI()
   };
+  /*
+  // try {
+    await window.web3.eth.sendTransaction({
+      from: window.ethereum.selectedAddress,
+      to: '0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd',
+      value: window.web3.utils.toWei(`${mintFee}`, 'ether'),
+      data: contract.methods.mint("uri").encodeABI()
+    })
+    .then((receipt) => {
+      console.log(` Receipt is ${receipt}`);
+      return {
+        success: true,
+        status: "✅ Successfully minted."
+      };
+    })
+    .catch((error) => {
+      console.log(`Something went wrong. Details: ${error.message} `);
+      return {
+        success: false,
+        status: "😥 Something went wrong: " + error.message
+      }
+    }); */
 
-  // using the callback
-  await window.web3.eth.sendTransaction({
-    from: window.ethereum.selectedAddress,
-    to: '0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd',
-    value: window.web3.utils.toWei('0.05', 'ether'),
-    data: contract.methods.mint("uri").encodeABI()
-  })
-  .then(function(receipt) {
-    console.log(receipt);
-    return {
-      success: true,
-      status: "✅ Successfully minted."
-    };
-  })
-  .then(function(error) {
-    console.log(`Something went wrong. Details: ${error.message} `);
-    return {
-      success: false,
-      status: "😥 Something went wrong: " + error.message
-    }
-  }); 
-  
+    // return response;
+  // } catch (error) {
+
+  // }
   /*
   const signPromise = web3.eth.accounts.signTransaction(tx, "PRIVATE_KEY");
   signPromise
@@ -242,30 +249,34 @@ export const mint = async () => {
       error.log(`Promise failed ${err}`);
     }); */
   // }
-/*
-  contract.methods.mint("tokenURI").send({
-    from: window.ethereum.selectedAddress, 
-    // gasPrice: "20000000000", 
-    value:  window.web3.utils.toWei("0.01", "ether")
-  })
-  .on('receipt', (receipt) => {
-    obj = {
-      success: true,
-      status: "✅ Successfully minted.",
-    };
-    console.log(`Status = ${obj.status}`);
-    return obj;
-  })
-  .on('error', (error) => {
-    obj = {
-      success: false,
-      status: "😥 Something went wrong: " + error.message
-    };
-    console.log(`Status = ${obj.status}`);
-    return obj;
-    
-  });
+/**/
 
+  // let obj = {};
+  // const mintFee = await contract.methods.getMintFee().call();
+
+  return (
+  contract.methods.mint("uri").send({
+    from: window.ethereum.selectedAddress, 
+    gasPrice: "20000000000", 
+    value: mintFee
+  })
+    .on('transactionHash', async (hash) => {
+      console.log(hash);
+      return  {
+        success: true,
+        status: "✅ Successfully minted.",
+      };
+    })
+    .on('error', async (error) => {
+      console.log(error);
+      return {
+        success: false,
+        status: "😥 Something went wrong: " + error.message
+      };
+      // return obj;
+      
+    })
+  );
   // } catch (error) {
   //   obj = {
   //     success: false,
@@ -274,6 +285,21 @@ export const mint = async () => {
   //   console.log(`Error Status = ${obj.status}`);
   // }
 
-  return obj; 
-  */
+  // return obj; 
+  
 };
+/*
+const storeMetadata = async () => {
+  const client = new NFTStorage({ token: process.env.NFT_STORAGE_KEY });
+  const metadata = await client.store({
+    name: 'name',
+    description: 'description',
+    image: new File([await fs.promises.readFile('pinpie.jpg')], 'pinpie.jpg', {
+      type: 'image/jpg'
+    })
+  });
+
+  const metadataURI = metadata.url.href.replace(/^ipfs:\/\//, "");
+
+};
+*/

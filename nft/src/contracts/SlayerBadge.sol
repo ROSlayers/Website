@@ -4,11 +4,12 @@ pragma solidity ^0.8.0;
 import "../../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "../../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "../../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-// import "../../node_modules/@openzeppelin/contracts/access/Ownable.sol";
+// import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
 import "../../node_modules/@openzeppelin/contracts/utils/Counters.sol";
 import "../../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "../../node_modules/@openzeppelin/contracts/access/AccessControl.sol";
 import "../../node_modules/@openzeppelin/contracts/security/Pausable.sol";
+
 
 
 contract SlayerBadge is 
@@ -72,19 +73,21 @@ contract SlayerBadge is
 		return _mintFee;
 	}
 
-	function contractURI() public pure returns (string memory) {
+	function _baseURI() internal pure override returns (string memory) {
 			return "https://gateway.pinata.cloud/ipfs/QmRLrF5nMMsqkpgWWSgePKNVU2piWHSzjGVHBsRK95dio7";
 	}
 
-	function mint(string memory tokenURI) public payable onlyRole(MINTER_ROLE) {
+
+	function mint(string memory _tokenURI) public payable virtual {
 		require(totalSupply() <= cap(), "ERC721 Cap: cap reached");
 		require(msg.value >= _mintFee, "Not enough ETH sent: check price.");
 		// Forward amount to contract adddress
-		(bool success, ) = payable(contractOwner).call{value: msg.value}("");
-		require(success, "Unable to send minting fee");
+// 		(bool success, ) = payable(contractOwner).call{value: msg.value}("");
+        // (bool success, ) = payable(address(this)).call{value: msg.value}("");
+// 		require(success, "Unable to send minting fee");
 		_tokenIdCounter.increment();
 		_safeMint(msg.sender, _tokenIdCounter.current());
-		_setTokenURI(_tokenIdCounter.current(), tokenURI);
+		_setTokenURI(_tokenIdCounter.current(), _tokenURI);
 			
 	}
 
@@ -102,19 +105,31 @@ contract SlayerBadge is
 	// Transfer funds
 	function transferFunds(address payable to ) public payable {
 		// payable(to).transfer(msg.value);
-		(bool sent, bytes memory data) = to.call{value: msg.value}("");
+		(bool sent,) = to.call{value: msg.value}("");
 		require(sent, "Falied to send!");		
 	}
 
 	receive() external payable {
-		// mint("");
+	    require(msg.value >= getMintFee(), "InsufficientBalance, check your balance");
+// 		mint();
 	}
 
-	fallback() external payable {}
 
+	// fallback() external payable {
+	// 	mint("");
+	// }
+    
+    function getContractAdress() public view returns (address) {
+        return address(this);
+    }
+    
 	function getBalance() public view returns (uint) {
 		return address(this).balance;
 	}
+    
+    function withdraw(address payable recepient) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        recepient.transfer(getBalance());
+    }
     
 	function _beforeTokenTransfer(address from, address to, uint256 tokenId)
 	internal

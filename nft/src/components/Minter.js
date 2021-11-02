@@ -1,6 +1,7 @@
 // import { response } from "express";
 import React from "react";
 import { useEffect, useState } from "react";
+// import { NFTStorage, File } from "nft.storage";
 import {
   connectWallet,
   getCurrentWalletConnected,
@@ -63,6 +64,7 @@ const Minter = (props) => {
 
   const onMintPressed = async () => {
     const { success, status } = await mint();
+		console.log("Response is ", success, ". Status ", status);
     setStatus(status);
 		setSuccess(success);
     if (success) {
@@ -100,8 +102,12 @@ const Minter = (props) => {
 			depositSec.className = "section block"; 
 		}
 
-	}
+	};
+/*
+	const metadata = () => {
 
+	};
+*/
   return (
 		<div>
 			<div className="navbar nabar-light" style={{backgroundColor: "#e3f2fd"}}>
@@ -118,7 +124,12 @@ const Minter = (props) => {
 					<div className="row ">
 						<div className="col-6 mt-5 mx-auto shadow p-3">
 							<div className="mt-3 text-right">
-								<div className="">
+								<div className="row">
+									<div className="form-group">
+										
+									</div>
+								</div>
+								<div className="row">
 									<button 
 										className="btn btn-primary" 
 										id="walletButton" 
