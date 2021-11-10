@@ -132,15 +132,15 @@ const loadContract = async () => {
   return new web3.eth.Contract(abi, contractAddress);
 }
 
-export const transferFunds = async (amount, recepient) => {
+export const deposit = async (amount, payer) => {
   const contract = await loadContract();
   
   let obj = {};
   // contract.
   const amountInWei = window.web3.utils.toWei(amount, "ether");
   window.web3.eth.sendTransaction({
-    from: window.ethereum.selectedAddress,
-    to: recepient,
+    from: payer,
+    to: window.ethereum.selectedAddress,
     value: window.web3.utils.toWei(`${amount}`, 'ether'),
     // data: contract.methods.transferFunds(recepient).encodeABI()
   })

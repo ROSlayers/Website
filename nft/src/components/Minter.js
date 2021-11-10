@@ -7,7 +7,7 @@ import {
   getCurrentWalletConnected,
   mint,
 	loadWeb3,
-	transferFunds,
+	deposit
 } from "../util/interact.js";
 
 const Minter = (props) => {
@@ -16,7 +16,7 @@ const Minter = (props) => {
 	const [success, setSuccess] = useState("");
 
   const [amount, setAmount] = useState(0);
-	const [recepient, setRecepient] = useState("");
+	const [payer, setRecepient] = useState("");
 //   const [description, setDescription] = useState("");
 //   const [url, setURL] = useState("");
 
@@ -76,7 +76,7 @@ const Minter = (props) => {
   };
 
 	const onTransferFunds = async () => {
-		const response = await transferFunds(amount, recepient);
+		const response = await deposit(amount, payer);
 		console.log(`In tra = ${response}`);
 		/*.then((response) => {
 			const { success, status } =response;
@@ -186,16 +186,16 @@ const Minter = (props) => {
 												className="input-group mb-3"
 											>
 												<label 
-												 htmlFor="recepientInput"
+												 htmlFor="payerInput"
 												>
-												 Recepient Address
+												 Enter Payer Address
 												</label>
 												<input
-													name="recepient"
-													id="recepientInput"
+													name="payer"
+													id="payerInput"
 													className="form-control"
 													type="text"
-													placeholder="Paste recepient address"
+													placeholder="Paste payer address"
 													onChange={(event) => setRecepient(event.target.value)}
 												/>
 											</div>
