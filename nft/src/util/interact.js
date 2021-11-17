@@ -1,5 +1,7 @@
 import React from "react";
 import Web3 from 'web3';
+import Axios from 'axios';
+import axios from "axios";
 // import { NFTStorage } from "nft.storage";
 
 require('dotenv').config();
@@ -7,10 +9,11 @@ const SlayerBadge = require('../abis/SlayerBadge.json');
 const abi = SlayerBadge.abi;
 const contractAddress = "0xc8f41c573d129c8327ba8adcd1f8ccb131242be0"; //"0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd";
 
+
 export const loadWeb3 = async () => {
   if (window.ethereum) {
     window.web3 = new Web3(window.ethereum);
-    await window.ethereum.eth_requestAccounts;
+  const accounts = await window.ethereum.request({method: 'eth_accounts'});
   }
   else if (window.web3) {
     window.web3 = new Web3(window.web3.currentProvider);
@@ -20,21 +23,26 @@ export const loadWeb3 = async () => {
   }
 }
 
+
 export const connectWallet = async () => {
   if (window.ethereum) {
     try {
       const addressArray = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
+      let options = await getCharacters();
+      console.log("Options in interact.js: " + options)
       const obj = {
-        status: "👆🏽 Write a message in the text-field above.",
+        status: "👆🏽 Mint a token.",
         address: addressArray[0],
+        options: options
       };
       return obj;
     } catch (err) {
       return {
         address: "",
         status: "😥 " + err.message,
+        options: []
       };
     }
   } else {
@@ -52,9 +60,11 @@ export const connectWallet = async () => {
           </p>
         </span>
       ),
+      options: []
     };
   }
 };
+
 
 export const getCurrentWalletConnected = async () => {
   if (window.ethereum) {
@@ -132,8 +142,18 @@ const loadContract = async () => {
   return new web3.eth.Contract(abi, contractAddress);
 }
 
-export const deposit = async (amount, payer) => {
+export const deposit = async (amount, payer, char_id) => {
   const contract = await loadContract();
+  let formatDate = date => 
+    `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+  
+  let data = {
+    name_id: 30008,
+    quantity: amount,
+    char_id: char_id,
+    redeemed: 0,
+     //new Date('Y-m-d H:i:s'), //2001-03-10 15:35:03
+  };
   
   let obj = {};
   // contract.
@@ -146,10 +166,15 @@ export const deposit = async (amount, payer) => {
   })
   .then(function(receipt) {
     console.log(receipt);
-    return {
-      success: true,
-      status: "✅ Successfully minted."
-    };
+    Axios.post("http://localhost:3001/api/insert", {
+      data: data
+    }).then(response => {
+      console.log(response.data);
+      return {
+        success: true,
+        status: "✅ Successfully minted."
+      };
+    });
   })
   .then(function(error) {
     console.log(`Something went wrong. Details: ${error.message} `);
@@ -167,93 +192,10 @@ export const mint = async () => {
   const mintFee = await contract.methods.getMintFee().call();
   console.log('Mint fee is', mintFee);
   console.log(`Contract address: ${contract.options.address}`);
-  // console.log(`Contract address is ${contract}`);
-  // const web3 = await window.web3;
-  // const contract = await new web3.eth.Contract(abi, accountAddress);
-  // let response = {};
-  // try {
-  // (async () => { 
-    /*
-  await window.web3.eth.sendTransaction({
-    from: window.ethereum.selectedAddress,
-    // to: contractAddress,
-    value: window.web3.utils.toWei("", "ether")
-  })
-  .then((receipt) => {
-    console.log("sucessful");
-  })
-  .catch((error) => {
-    console.log("Error ", error.message);
-  });*/
-  // const nonce = await web3.eth.getTransactionCount(PUBLIC_KEY, 'latest'); //get latest nonce
-
-  let contractAdr = contract.adddress;
+  
+  let contractAdr = contract.options.address;
   console.log("Contract address is: ", contractAdr);
-
-
-  const tx = {
-    'from': window.ethereum.selectedAddress,
-    'to': '0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd',
-    // 'nonce': nonce,
-    'gasPrice': '20000000000',
-    'value': window.web3.utils.toWei('.05', 'ether'),
-    'data': contract.methods.mint("uri").encodeABI()
-  };
-  /*
-  // try {
-    await window.web3.eth.sendTransaction({
-      from: window.ethereum.selectedAddress,
-      to: '0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd',
-      value: window.web3.utils.toWei(`${mintFee}`, 'ether'),
-      data: contract.methods.mint("uri").encodeABI()
-    })
-    .then((receipt) => {
-      console.log(` Receipt is ${receipt}`);
-      return {
-        success: true,
-        status: "✅ Successfully minted."
-      };
-    })
-    .catch((error) => {
-      console.log(`Something went wrong. Details: ${error.message} `);
-      return {
-        success: false,
-        status: "😥 Something went wrong: " + error.message
-      }
-    }); */
-
-    // return response;
-  // } catch (error) {
-
-  // }
-  /*
-  const signPromise = web3.eth.accounts.signTransaction(tx, "PRIVATE_KEY");
-  signPromise
-    .then((signedTx) => {
-      web3.eth.sendSignedTransaction(
-        signedTx.rawTransaction,
-        function (err, hash) {
-          if (!err) {
-            console.log(
-              `The hash of your transaction: ${hash} 
-              \nCheck bscscan to view status of your transaction.`
-            );
-          }else {
-            console.log(`Something went wrong when submitting your 
-            transaction ${err.message}`);
-          }
-        }
-      );
-    })
-    .catch((err) => {
-      error.log(`Promise failed ${err}`);
-    }); */
-  // }
-/**/
-
-  // let obj = {};
-  // const mintFee = await contract.methods.getMintFee().call();
-
+  
   return (
   contract.methods.mint("uri").send({
     from: window.ethereum.selectedAddress, 
@@ -275,8 +217,7 @@ export const mint = async () => {
       };
       // return obj;
       
-    })
-  );
+    }));
   // } catch (error) {
   //   obj = {
   //     success: false,
@@ -288,6 +229,7 @@ export const mint = async () => {
   // return obj; 
   
 };
+
 /*
 const storeMetadata = async () => {
   const client = new NFTStorage({ token: process.env.NFT_STORAGE_KEY });
@@ -303,3 +245,28 @@ const storeMetadata = async () => {
 
 };
 */
+
+const instance = axios.create({
+  baseURL: 'http://localhost:3001/api',
+  timeout: 8000,
+  headers: {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+  }
+});
+
+
+const getCharacters = async  () => {
+  let options;
+  const walletAdr = window.ethereum.selectedAddress;
+  instance.get(`/get_char/${walletAdr}`)
+  .then(response => {
+    console.log("---Response: ", response.data);
+    options = response.data;
+  })
+  .then(error => {
+    console.log(`Error occured in ${this}: `);
+  });
+
+  return options;
+};

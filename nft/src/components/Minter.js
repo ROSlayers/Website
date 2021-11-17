@@ -1,4 +1,3 @@
-// import { response } from "express";
 import React from "react";
 import { useEffect, useState } from "react";
 // import { NFTStorage, File } from "nft.storage";
@@ -7,7 +6,8 @@ import {
   getCurrentWalletConnected,
   mint,
 	loadWeb3,
-	deposit
+	deposit,
+	// getCharacters
 } from "../util/interact.js";
 
 const Minter = (props) => {
@@ -17,19 +17,31 @@ const Minter = (props) => {
 
   const [amount, setAmount] = useState(0);
 	const [payer, setRecepient] = useState("");
+	const [options, setOptions] = useState([]);
+	const [character, setCharacter] = useState(0);
 //   const [description, setDescription] = useState("");
 //   const [url, setURL] = useState("");
 
-  useEffect(async () => {
-		await loadWeb3();
+  useEffect(() => {
+		async function x() {
+			await loadWeb3();
 		// await
-    const { address, status } = await getCurrentWalletConnected();
+			const { address, status, options } = await connectWallet(); // getCurrentWalletConnected();
 
-    setWallet(address);
-    setStatus(status);
+			setWallet(address);
+			setStatus(status);
+			setOptions(options || []);
+			console.log("Options: " + options);
 
-    addWalletListener();
-  }, []);
+			addWalletListener();
+		}
+		
+		x();
+	}, []);
+
+	const getWallet = async () => {
+		await getCurrentWalletConnected()
+	}
 
   function addWalletListener() {
     if (window.ethereum) {
@@ -58,25 +70,29 @@ const Minter = (props) => {
 
   const connectWalletPressed = async () => {
     const walletResponse = await connectWallet();
+		// const option = await getCharacters();
     setStatus(walletResponse.status);
     setWallet(walletResponse.address);
+		// setOptions([...options, option]);
+		// console.log('options: ' + options + "-- option: " + option)
   };
 
   const onMintPressed = async () => {
-    const { success, status } = await mint();
+    let { success, status } = await mint();
 		console.log("Response is ", success, ". Status ", status);
     setStatus(status);
+		console.log("sucess: ", success, "status: ", status);
 		setSuccess(success);
     if (success) {
-			console.log("sucess")
+			console.log("sucess");
     //   setName("");
     //   setDescription("");
     //   setURL("");
     }
   };
 
-	const onTransferFunds = async () => {
-		const response = await deposit(amount, payer);
+	const onDeposit = async () => {
+		const response = await deposit(amount, payer, character);
 		console.log(`In tra = ${response}`);
 		/*.then((response) => {
 			const { success, status } =response;
@@ -88,9 +104,10 @@ const Minter = (props) => {
 			setSuccess(success);
 			setStatus(status);
 		});*/
-	}
+	};
 
-	const switchSection = (elem) => {
+
+	const switchSection =  (elem) => {
 		let depositSec = document.querySelector("#deposit-sec");
 		let mintSec = document.querySelector("#mint-sec");
 		
@@ -102,7 +119,13 @@ const Minter = (props) => {
 			depositSec.className = "section block"; 
 		}
 
+		// if(walletAddress) {
+		// 	let response = await getCharacters();
+		// 	console.log("Options: ", options, "Results: " + response);
+		// }	
 	};
+
+	
 /*
 	const metadata = () => {
 
@@ -178,18 +201,18 @@ const Minter = (props) => {
 										className="form-group"
 										onSubmit={(event) => {
 											event.preventDefault();
-											onTransferFunds();
+											onDeposit();
 										}}
 									>
 										<div className="form-group">
 											<div 
 												className="input-group mb-3"
 											>
-												<label 
+												{/* <label 
 												 htmlFor="payerInput"
 												>
 												 Enter Payer Address
-												</label>
+												</label> */}
 												<input
 													name="payer"
 													id="payerInput"
@@ -200,11 +223,26 @@ const Minter = (props) => {
 												/>
 											</div>
 											<div className="input-group mb-3">
-												<label 
+												<select 
+													className="custom-select"
+													onChange={evt => setCharacter(evt.target.value)}
+												>
+													<option defaultValue={""}>Select Character Name</option>
+													{ 
+														options.map(element => {
+															return (<option value={element.char_id}>{ element.char_name }</option>)
+														})
+													}
+													
+												</select>
+												
+											</div>
+											<div className="input-group mb-3">
+												{/* <label 
 													htmlFor="depositInput"
 												>
 													Deposit
-												</label>
+												</label> */}
 												<input
 													name="deposit"
 													id="depositInput"
@@ -222,7 +260,6 @@ const Minter = (props) => {
 														type="submit"
 														className="btn btn-primary w-100"
 														value="Deposit"
-														
 													/>
 												{/* </div> */}
 											</div>
