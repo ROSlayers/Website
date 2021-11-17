@@ -229,8 +229,8 @@ const Minter = (props) => {
 												>
 													<option defaultValue={""}>Select Character Name</option>
 													{ 
-														options.map(element => {
-															return (<option value={element.char_id}>{ element.char_name }</option>)
+														options.map((element, i) => {
+															return (<option key={i} value={element.char_id}>{ element.char_name }</option>)
 														})
 													}
 													

@@ -257,16 +257,20 @@ const instance = axios.create({
 
 
 const getCharacters = async  () => {
-  let options;
-  const walletAdr = window.ethereum.selectedAddress;
+  var options;
+  const walletAdr = '0xAcD12ae8F8d0312e567C7Be02CB3D42734460939'; //window.ethereum.selectedAddress;
+  return (
   instance.get(`/get_char/${walletAdr}`)
   .then(response => {
     console.log("---Response: ", response.data);
-    options = response.data;
+    var res = response.data;
+    options = res[0].success ? res[1].data : [];
+    console.log('Options ' , options);
+    return options;
   })
-  .then(error => {
-    console.log(`Error occured in ${this}: `);
-  });
-
-  return options;
+  .catch(error => {
+    console.log(`Error occured in $: ${error}`);
+  })
+  // console.log("Options out: " + options);
+  );
 };
