@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Carousel, ListGroup, Card, Row } from "react-bootstrap";
 
+/*
 import dark_sword from './metadata/images/sword-dark.jpeg';
 import twin_sword from './metadata/images/twin-sword.jpg';
 import damascus from './metadata/images/damascus.jpeg';
 import shield from './metadata/images/shield.jpeg';
-
+*/
 
 export default function TokenModal({ passMetadata }) {
 
