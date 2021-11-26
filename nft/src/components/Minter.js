@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useState } from "react";
-// import { NFTStorage, File } from "nft.storage";
+import TokenModal from './TokenModal';
 import {
   connectWallet,
   getCurrentWalletConnected,
@@ -19,6 +19,7 @@ const Minter = (props) => {
 	const [payer, setRecepient] = useState("");
 	const [options, setOptions] = useState([]);
 	const [character, setCharacter] = useState(0);
+	const [metadata, setMetadata] = useState({});
 //   const [description, setDescription] = useState("");
 //   const [url, setURL] = useState("");
 
@@ -77,8 +78,13 @@ const Minter = (props) => {
 		// console.log('options: ' + options + "-- option: " + option)
   };
 
+	const handleCallback = (data) => {
+		setMetadata(data);
+	};
+
   const onMintPressed = async () => {
-    let { success, status } = await mint();
+		console.log("MEtadata: ", metadata);
+    let { success, status } = await mint(metadata);
 		console.log("Response is ", success, ". Status ", status);
     setStatus(status);
 		console.log("sucess: ", success, "status: ", status);
@@ -187,6 +193,7 @@ const Minter = (props) => {
 								<h1 id="title">SlayerBadge Token</h1>
 							
 								<div className="section" id="mint-sec">
+									<TokenModal passMetadata={setMetadata} />
 									<button 
 										id="mintButton" 
 										className="btn btn-primary"

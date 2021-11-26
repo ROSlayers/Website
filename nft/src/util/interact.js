@@ -1,13 +1,12 @@
 import React from "react";
 import Web3 from 'web3';
 import Axios from 'axios';
-import axios from "axios";
-// import { NFTStorage } from "nft.storage";
+import { NFTStorage } from "nft.storage";
 
 require('dotenv').config();
 const SlayerBadge = require('../abis/SlayerBadge.json');
 const abi = SlayerBadge.abi;
-const contractAddress = "0xc8f41c573d129c8327ba8adcd1f8ccb131242be0"; //"0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd";
+const contractAddress = "0xc24efa13f7232a23b55053a79d806d9a69930fc5"; //"0xE717861a0EDc09b4cF35A60B8AB114d4C49dC2Bd";
 
 
 export const loadWeb3 = async () => {
@@ -186,7 +185,7 @@ export const deposit = async (amount, payer, char_id) => {
 };  
 
 
-export const mint = async () => {
+export const mint = async (metadata) => {
   
   const contract = await loadContract();
   const mintFee = await contract.methods.getMintFee().call();
@@ -196,8 +195,10 @@ export const mint = async () => {
   let contractAdr = contract.options.address;
   console.log("Contract address is: ", contractAdr);
   
+  const metadataURI = await storeMetadata(metadata);
+  console.log("URI: ", metadataURI);
   return (
-  contract.methods.mint("uri").send({
+  contract.methods.mint(metadataURI).send({
     from: window.ethereum.selectedAddress, 
     gasPrice: "20000000000", 
     value: mintFee
@@ -207,6 +208,7 @@ export const mint = async () => {
       return  {
         success: true,
         status: "✅ Successfully minted.",
+        metadataURI: metadataURI,
       };
     })
     .on('error', async (error) => {
@@ -230,23 +232,37 @@ export const mint = async () => {
   
 };
 
-/*
-const storeMetadata = async () => {
-  const client = new NFTStorage({ token: process.env.NFT_STORAGE_KEY });
-  const metadata = await client.store({
-    name: 'name',
-    description: 'description',
-    image: new File([await fs.promises.readFile('pinpie.jpg')], 'pinpie.jpg', {
-      type: 'image/jpg'
-    })
+
+const storeMetadata = async (metadata) => {
+  console.log('Token: ' + process.env.REACT_APP_NFT_STORAGE_KEY);
+  const client = new NFTStorage({ token: process.env.REACT_APP_NFT_STORAGE_KEY });
+  console.log('nft.storage client: '+ Object.getOwnPropertyNames(client));
+  
+  async function createFile() {
+    let response = await fetch(metadata.image, {mode:'no-cors'});
+    let data = await response.blob();
+    let name = metadata.name.replace(/\s/g, '').concat('.jpeg');
+    let file = new File([data], name, {type: 'image/jpeg'});
+    return file;
+  }
+  
+  const imgFile = await createFile();
+  fetch(metadata.image, {mode:'no-cors'});
+
+  const data = await client.store({
+    name: metadata.name,
+    description: metadata.description,
+    image: imgFile,
+    // attributes: metadata.attributes
   });
 
-  const metadataURI = metadata.url.href.replace(/^ipfs:\/\//, "");
-
+  const metadataURI = data.url.replace(/^ipfs:\/\//, "");
+  console.log('URI: '+ metadataURI);
+  return metadataURI;
 };
-*/
 
-const instance = axios.create({
+
+const instance = Axios.create({
   baseURL: 'http://localhost:3001/api',
   timeout: 8000,
   headers: {
